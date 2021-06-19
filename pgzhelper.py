@@ -74,37 +74,30 @@ class Collide():
     return False
 
   @staticmethod
-  def circle_point(x1, y1, radius, x2, y2):
-    rSquare = radius ** 2
-    dSquare = (x2 - x1)**2 + (y2 - y1)**2
+  def line_line_XY(l1x1, l1y1, l1x2, l1y2, l2x1, l2y1, l2x2, l2y2):
+    determinant = (l2y2-l2y1)*(l1x2-l1x1) - (l2x2-l2x1)*(l1y2-l1y1)
 
-    if dSquare < rSquare:
-      return True
-
-    return False
-
-  @staticmethod
-  def circle_points(x, y, radius, points):
-      rSquare = radius ** 2
-
-      i = 0
-      for point in points:
-        try:
-          px = point[0]
-          py = point[1]
-        except KeyError:
-          px = point.x
-          py = point.y
-        dSquare = (px - x)**2 + (py - y)**2
-
-        if dSquare < rSquare:
-          return i
-        i += 1
-
+    # Simplify: Parallel lines are never considered to be intersecting
+    if determinant == 0:
       return -1
 
+    a = l1x1 * l1y2 - l1y1 * l1x2
+    b = l2x1 * l2y2 - l2y1 * l2x2
+    ix = (a * (l2x1 - l2x2) - (l1x1 - l1x2) * b) / determinant
+    iy = (a * (l2y1 - l2y2) - (l1y1 - l1y2) * b) / determinant
+
+    return (ix, iy)
+
   @staticmethod
-  def circle_line(cx, cy, radius, x1, y1, x2, y2):
+  def line_line_dist(l1x1, l1y1, l1x2, l1y2, l2x1, l2y1, l2x2, l2y2):
+    ix, iy = Collide.line_line_XY(l1x1, l1y1, l1x2, l1y2, l2x1, l2y1, l2x2, l2y2)
+    return distance_to(l1x1, l1y1, ix, iy)
+
+  @staticmethod
+  def line_circle(x1, y1, x2, y2, cx, cy, radius):
+    if Collide.circle_points(cx, cy, radius, [(x1, y1), (x2, y2)]) != -1:
+      return True
+
     x1 -= cx
     y1 -= cy
     x2 -= cx
@@ -181,6 +174,36 @@ class Collide():
     return False
 
   @staticmethod
+  def circle_point(x1, y1, radius, x2, y2):
+    rSquare = radius ** 2
+    dSquare = (x2 - x1)**2 + (y2 - y1)**2
+
+    if dSquare < rSquare:
+      return True
+
+    return False
+
+  @staticmethod
+  def circle_points(x, y, radius, points):
+      rSquare = radius ** 2
+
+      i = 0
+      for point in points:
+        try:
+          px = point[0]
+          py = point[1]
+        except KeyError:
+          px = point.x
+          py = point.y
+        dSquare = (px - x)**2 + (py - y)**2
+
+        if dSquare < rSquare:
+          return i
+        i += 1
+
+      return -1
+
+  @staticmethod
   def circle_circle(x1, y1, r1, x2, y2, r2):
     rSquare = (r1 + r2) ** 2
     dSquare = (x2 - x1)**2 + (y2 - y1)**2
@@ -217,6 +240,11 @@ class Collide():
       return True
 
     return False
+
+  # @staticmethod
+  # def circle_obb(cx, cy, cr, x, y, w, h, angle):
+  #   h_w = w / 2
+  #   h_h = h / 2
 
   @staticmethod
   def rect_point(x, y, w, h, px, py):

@@ -25,7 +25,7 @@ def draw():
     l1x2 = random.randint(100, 700)
     l1y2 = random.randint(100, 500)
 
-    if Collide.circle_line(c[0], c[1], c[2], l1x1, l1y1, l1x2, l1y2):
+    if Collide.line_circle(l1x1, l1y1, l1x2, l1y2, c[0], c[1], c[2]):
         color = (255, 0, 0)
     else:
         color = (0, 255, 0)
