@@ -436,11 +436,6 @@ class Collide():
 
     return False
 
-  # @staticmethod
-  # def circle_obb(cx, cy, cr, x, y, w, h, angle):
-  #   h_w = w / 2
-  #   h_h = h / 2
-
   @staticmethod
   def rect_point(x, y, w, h, px, py):
     half_w = w / 2
