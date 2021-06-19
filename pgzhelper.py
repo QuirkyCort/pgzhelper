@@ -341,9 +341,9 @@ class Collide():
       return XYs[0]
 
     ix, iy = XYs[0]
-    shortest_dist = abs(ix - x1)
+    shortest_dist = (ix - x1) ** 2 + (iy - y1) ** 2
     for XY in XYs:
-      dist = abs(XY[0] - x1)
+      dist = (XY[0] - x1) ** 2 + (XY[1] - y1) ** 2
       if dist < shortest_dist:
         ix, iy = XY
         shortest_dist = dist
@@ -559,6 +559,172 @@ class Collide():
       i += 1
 
     return -1
+
+  @staticmethod
+  def obb_line(x, y, w, h, angle, lx1, ly1, lx2, ly2):
+    half_width = w / 2
+    half_height = h / 2
+    r_angle = math.radians(angle)
+    costheta = math.cos(r_angle)
+    sintheta = math.sin(r_angle)
+
+    tx = lx1 - x
+    ty = ly1 - y
+    rx = tx * costheta - ty * sintheta
+    ry = ty * costheta + tx * sintheta
+
+    if rx > -half_width and rx < half_width and ry > -half_height and ry < half_height:
+      return True
+
+    tx = lx2 - x
+    ty = ly2 - y
+    rx = tx * costheta - ty * sintheta
+    ry = ty * costheta + tx * sintheta
+    
+    if rx > -half_width and rx < half_width and ry > -half_height and ry < half_height:
+      return True
+
+    wc = half_width * costheta
+    hs = half_height * sintheta
+    hc = half_height * costheta
+    ws = half_width * sintheta
+    p = [
+      [x + wc + hs, y + hc - ws],
+      [x - wc + hs, y + hc + ws],      
+      [x + wc - hs, y - hc - ws],
+      [x - wc - hs, y - hc + ws],      
+    ]
+    obb_lines = [
+      [p[0][0], p[0][1], p[1][0], p[1][1]],
+      [p[1][0], p[1][1], p[3][0], p[3][1]],
+      [p[3][0], p[3][1], p[2][0], p[2][1]],
+      [p[2][0], p[2][1], p[0][0], p[0][1]]
+    ]
+
+    if Collide.line_lines(lx1, ly1, lx2, ly2, obb_lines) != -1:
+      return True
+
+    return False
+
+  @staticmethod
+  def obb_lines(x, y, w, h, angle, lines):
+    half_width = w / 2
+    half_height = h / 2
+    r_angle = math.radians(angle)
+    costheta = math.cos(r_angle)
+    sintheta = math.sin(r_angle)
+
+    wc = half_width * costheta
+    hs = half_height * sintheta
+    hc = half_height * costheta
+    ws = half_width * sintheta
+    p = [
+      [x + wc + hs, y + hc - ws],
+      [x - wc + hs, y + hc + ws],      
+      [x + wc - hs, y - hc - ws],
+      [x - wc - hs, y - hc + ws],      
+    ]
+    obb_lines = [
+      [p[0][0], p[0][1], p[1][0], p[1][1]],
+      [p[1][0], p[1][1], p[3][0], p[3][1]],
+      [p[3][0], p[3][1], p[2][0], p[2][1]],
+      [p[2][0], p[2][1], p[0][0], p[0][1]]
+    ]
+
+    i = 0
+    for l in lines:
+      tx = l[0] - x
+      ty = l[1] - y
+      rx = tx * costheta - ty * sintheta
+      ry = ty * costheta + tx * sintheta
+
+      if rx > -half_width and rx < half_width and ry > -half_height and ry < half_height:
+        return i
+
+      tx = l[2] - x
+      ty = l[3] - y
+      rx = tx * costheta - ty * sintheta
+      ry = ty * costheta + tx * sintheta
+      
+      if rx > -half_width and rx < half_width and ry > -half_height and ry < half_height:
+        return i
+
+      if Collide.line_lines(l[0], l[1], l[2], l[3], obb_lines) != -1:
+        return i
+
+      i += 1
+
+    return -1
+
+  @staticmethod
+  def obb_line_XY(x, y, w, h, angle, lx1, ly1, lx2, ly2):
+    half_width = w / 2
+    half_height = h / 2
+    r_angle = math.radians(angle)
+    costheta = math.cos(r_angle)
+    sintheta = math.sin(r_angle)
+
+    tx = lx1 - x
+    ty = ly1 - y
+    rx = tx * costheta - ty * sintheta
+    ry = ty * costheta + tx * sintheta
+
+    if rx > -half_width and rx < half_width and ry > -half_height and ry < half_height:
+      return (lx1, ly1)
+
+    wc = half_width * costheta
+    hs = half_height * sintheta
+    hc = half_height * costheta
+    ws = half_width * sintheta
+    p = [
+      [x + wc + hs, y + hc - ws],
+      [x - wc + hs, y + hc + ws],      
+      [x + wc - hs, y - hc - ws],
+      [x - wc - hs, y - hc + ws],      
+    ]
+    obb_lines = [
+      [p[0][0], p[0][1], p[1][0], p[1][1]],
+      [p[1][0], p[1][1], p[3][0], p[3][1]],
+      [p[3][0], p[3][1], p[2][0], p[2][1]],
+      [p[2][0], p[2][1], p[0][0], p[0][1]]
+    ]
+
+    XYs = []
+    for l in obb_lines:
+      ix, iy = Collide.line_line_XY(lx1, ly1, lx2, ly2, l[0], l[1], l[2], l[3])
+      if ix is not None:
+        XYs.append((ix, iy))
+
+    length = len(XYs)
+    if length == 0:
+      return (None, None)
+    elif length == 1:
+      return XYs[0]
+
+    ix, iy = XYs[0]
+    shortest_dist = (ix - lx1) ** 2 + (iy - ly1) ** 2
+    for XY in XYs:
+      dist = (XY[0] - lx1) ** 2 + (XY[1] - ly1) ** 2
+      if dist < shortest_dist:
+        ix, iy = XY
+        shortest_dist = dist
+
+    return (ix, iy)
+
+  @staticmethod
+  def obb_line_dist(x, y, w, h, angle, lx1, ly1, lx2, ly2):
+    ix, iy = Collide.obb_line_XY(x, y, w, h, angle, lx1, ly1, lx2, ly2)
+    if ix is not None:
+      return distance_to(lx1, ly1, ix, iy)
+    return None
+
+  @staticmethod
+  def obb_line_dist_squared(x, y, w, h, angle, lx1, ly1, lx2, ly2):
+    ix, iy = Collide.obb_line_XY(x, y, w, h, angle, lx1, ly1, lx2, ly2)
+    if ix is not None:
+      return distance_to_squared(lx1, ly1, ix, iy)
+    return None
+
 
 class Actor(Actor):
   def __init__(self, image, pos=POS_TOPLEFT, anchor=ANCHOR_CENTER, **kwargs):
