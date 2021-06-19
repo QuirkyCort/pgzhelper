@@ -36,7 +36,7 @@ def distance_to(from_x, from_y, to_x, to_y):
   dy = to_y - from_y
   return math.sqrt(dx**2 + dy**2)
 
-def distance_squared_to(from_x, from_y, to_x, to_y):
+def distance_to_squared(from_x, from_y, to_x, to_y):
   dx = to_x - from_x
   dy = to_y - from_y
   return dx**2 + dy**2
@@ -112,7 +112,7 @@ class Collide():
   def line_line_dist_squared(l1x1, l1y1, l1x2, l1y2, l2x1, l2y1, l2x2, l2y2):
     ix, iy = Collide.line_line_XY(l1x1, l1y1, l1x2, l1y2, l2x1, l2y1, l2x2, l2y2)
     if ix is not None:
-      return distance_squared_to(l1x1, l1y1, ix, iy)
+      return distance_to_squared(l1x1, l1y1, ix, iy)
     return None
 
   @staticmethod
@@ -271,7 +271,7 @@ class Collide():
   def line_circle_dist_squared(x1, y1, x2, y2, cx, cy, radius):
     ix, iy = Collide.line_circle_XY(x1, y1, x2, y2, cx, cy, radius)
     if ix is not None:
-      return distance_squared_to(x1, y1, ix, iy)
+      return distance_to_squared(x1, y1, ix, iy)
     return None
 
   @staticmethod
@@ -440,14 +440,19 @@ class Collide():
 
   @staticmethod
   def obb_point(x, y, w, h, angle, px, py):
+    half_width = w / 2
+    half_height = h / 2
+    b_radius_sq = half_width ** 2 + half_height ** 2
+    tx = px - x
+    ty = py - y
+
+    if tx ** 2 + ty ** 2 > b_radius_sq:
+      return False
+
     r_angle = math.radians(angle)
     costheta = math.cos(r_angle)
     sintheta = math.sin(r_angle)
-    half_width = w / 2
-    half_height = h / 2
 
-    tx = px - x
-    ty = py - y
     rx = tx * costheta - ty * sintheta
     ry = ty * costheta + tx * sintheta
 
@@ -458,11 +463,11 @@ class Collide():
 
   @staticmethod
   def obb_points(x, y, w, h, angle, points):
+    half_width = w / 2
+    half_height = h / 2
     r_angle = math.radians(angle)
     costheta = math.cos(r_angle)
     sintheta = math.sin(r_angle)
-    half_width = w / 2
-    half_height = h / 2
 
     i = 0
     for point in points:

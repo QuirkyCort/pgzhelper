@@ -21,14 +21,14 @@ r2.y = random.randint(100, 500)
 r2.angle = random.randint(0, 359)
 
 points = []
-for _ in range(40):
+for _ in range(20):
     points.append([
         random.randint(100, 700),
         random.randint(100, 500)
     ])
 
-def update():
-    pass
+def update(d):
+    print(1/d)
 
 def draw():
     screen.clear()
