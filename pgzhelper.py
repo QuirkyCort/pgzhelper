@@ -64,19 +64,24 @@ def move(x, y, direction, distance):
 class Collide():
   @staticmethod
   def line_line(l1x1, l1y1, l1x2, l1y2, l2x1, l2y1, l2x2, l2y2):
-    determinant = (l2y2-l2y1)*(l1x2-l1x1) - (l2x2-l2x1)*(l1y2-l1y1)
+    l1x2_l1x1 = l1x2-l1x1
+    l1y2_l1y1 = l1y2-l1y1
+
+    determinant = (l2y2-l2y1)*l1x2_l1x1 - (l2x2-l2x1)*l1y2_l1y1
 
     # Simplify: Parallel lines are never considered to be intersecting
     if determinant == 0:
       return False
 
     uA = ((l2x2-l2x1)*(l1y1-l2y1) - (l2y2-l2y1)*(l1x1-l2x1)) / determinant
-    uB = ((l1x2-l1x1)*(l1y1-l2y1) - (l1y2-l1y1)*(l1x1-l2x1)) / determinant
+    if uA < 0 or uA > 1:
+      return False
 
-    if 0 <= uA <= 1 and 0 <= uB <= 1:
-      return True
+    uB = (l1x2_l1x1*(l1y1-l2y1) - l1y2_l1y1*(l1x1-l2x1)) / determinant
+    if uB < 0 or uB > 1:
+      return False
 
-    return False
+    return True
 
   @staticmethod
   def line_line_XY(l1x1, l1y1, l1x2, l1y2, l2x1, l2y1, l2x2, l2y2):
@@ -112,81 +117,41 @@ class Collide():
 
   @staticmethod
   def line_circle(x1, y1, x2, y2, cx, cy, radius):
-    if Collide.circle_points(cx, cy, radius, [(x1, y1), (x2, y2)]) != -1:
+    r_sq = radius ** 2
+
+    dist_sq = (x1 - cx) ** 2 + (y1 - cy) ** 2
+    if dist_sq <= r_sq:
       return True
 
-    x1 -= cx
-    y1 -= cy
-    x2 -= cx
-    y2 -= cy
+    dist_sq = (x2 - cx) ** 2 + (y2 - cy) ** 2
+    if dist_sq <= r_sq:
+      return True
 
-    if x2 < x1:
-      x_min, x_max = x2, x1
-    else:
-      x_min, x_max = x1, x2
-
-    if y2 < y1:
-      y_min, y_max = y2, y1
-    else:
-      y_min, y_max = y1, y2
-
-    # Coefficients of circle
-    c_r2 = radius ** 2
-
-    # Simplify if dx == 0: Vertical line
     dx = x2 - x1
-    if dx == 0:
-      d = c_r2 - x1**2
-      if d < 0:
+    dy = y2 - y1
+    l_sq = dx ** 2 + dy ** 2
+    dot = (((cx - x1) * dx) + ((cy - y1) * dy)) / l_sq
+
+    ix = x1 + dot * dx
+
+    if x1 < x2:
+      if ix < x1 or ix > x2:
         return False
-      elif d == 0:
-        i = 0
-      else:
-        i = math.sqrt(d)
-      if y_min <= i <= y_max or y_min <= -i <= y_max:
-        return True
-      return False
-    
-    # Gradient of line
-    l_m = (y2 - y1) / dx
-
-    # Simplify if l_m == 0: Horizontal line
-    if l_m == 0:
-      d = c_r2 - y1**2
-      if d < 0:
-        return False
-      elif d == 0:
-        i = 0
-      else:
-        i = math.sqrt(d)
-      if x_min <= i <= x_max or x_min <= -i <= x_max:
-        return True
-      return False
-
-    # y intercept
-    l_c = y1 - l_m * x1
-
-    # Coefficients of quadratic
-    a = 1 + l_m**2
-    b = 2 * l_c * l_m
-    c = l_c**2 - c_r2
-
-    # Calculate discriminant and solve quadratic  
-    discriminant = b**2 - 4 * a * c
-    if discriminant < 0:
-      return False
-
-    if discriminant == 0:
-      d_root = 0
     else:
-      d_root = math.sqrt(discriminant)
+      if ix > x1 or ix < x2:
+        return False
 
-    i1 = (-b + d_root) / (2 * a)
-    if x_min <= i1 <= x_max:
-      return True
+    iy = y1 + dot * dy
 
-    i2 = (-b - d_root) / (2 * a)
-    if x_min <= i2 <= x_max:
+    if y1 < y2:
+      if iy < y1 or iy > y2:
+        return False
+    else:
+      if iy > y1 or iy < y2:
+        return False
+
+    dist_sq = (ix - cx) ** 2 + (iy - cy) ** 2
+    if dist_sq <= r_sq:
       return True
 
     return False
