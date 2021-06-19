@@ -351,6 +351,20 @@ class Collide():
     return (ix, iy)
 
   @staticmethod
+  def line_rect_dist(x1, y1, x2, y2, rx, ry, w, h):
+    ix, iy = Collide.line_rect_XY(x1, y1, x2, y2, rx, ry, w, h)
+    if ix is not None:
+      return distance_to(x1, y1, ix, iy)
+    return None
+
+  @staticmethod
+  def line_rect_dist_squared(x1, y1, x2, y2, rx, ry, w, h):
+    ix, iy = Collide.line_rect_XY(x1, y1, x2, y2, rx, ry, w, h)
+    if ix is not None:
+      return distance_to_squared(x1, y1, ix, iy)
+    return None
+
+  @staticmethod
   def circle_point(x1, y1, radius, x2, y2):
     rSquare = radius ** 2
     dSquare = (x2 - x1)**2 + (y2 - y1)**2
