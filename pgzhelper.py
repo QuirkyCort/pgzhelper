@@ -84,12 +84,35 @@ class Collide():
     return True
 
   @staticmethod
+  def line_lines(l1x1, l1y1, l1x2, l1y2, l2):
+    l1x2_l1x1 = l1x2-l1x1
+    l1y2_l1y1 = l1y2-l1y1
+
+    i = 0
+    for l in l2:
+      determinant = (l[3]-l[1])*l1x2_l1x1 - (l[2]-l[0])*l1y2_l1y1
+
+      # Simplify: Parallel lines are never considered to be intersecting
+      if determinant == 0:
+        i += 1
+        continue
+
+      uA = ((l[2]-l[0])*(l1y1-l[1]) - (l[3]-l[1])*(l1x1-l[0])) / determinant
+      uB = (l1x2_l1x1*(l1y1-l[1]) - l1y2_l1y1*(l1x1-l[0])) / determinant
+      if 0 <= uA <= 1 and 0 <= uB <= 1:
+        return i
+      
+      i += 1
+
+    return -1
+
+  @staticmethod
   def line_line_XY(l1x1, l1y1, l1x2, l1y2, l2x1, l2y1, l2x2, l2y2):
     determinant = (l2y2-l2y1)*(l1x2-l1x1) - (l2x2-l2x1)*(l1y2-l1y1)
 
     # Simplify: Parallel lines are never considered to be intersecting
     if determinant == 0:
-      return False
+      return (None, None)
 
     uA = ((l2x2-l2x1)*(l1y1-l2y1) - (l2y2-l2y1)*(l1x1-l2x1)) / determinant
     uB = ((l1x2-l1x1)*(l1y1-l2y1) - (l1y2-l1y1)*(l1x1-l2x1)) / determinant
@@ -275,23 +298,57 @@ class Collide():
     return None
 
   @staticmethod
-  def line_rect(lx1, ly1, lx2, ly2, x, y, w, h):
-    if Collide.rect_points(x, y, w, h, [(lx1, ly1), (lx2, ly2)]):
+  def line_rect(x1, y1, x2, y2, rx, ry, w, h):
+    if Collide.rect_points(rx, ry, w, h, [(x1, y1), (x2, y2)]) != -1:
       return True
 
     half_w = w / 2
     half_h = h / 2
     rect_lines = [
-      [x - half_w, y - half_h, x - half_w, y + half_h],
-      [x - half_w, y - half_h, x + half_w, y - half_h],
-      [x + half_w, y + half_h, x - half_w, y + half_h],
-      [x + half_w, y + half_h, x + half_w, y - half_h],
+      [rx - half_w, ry - half_h, rx - half_w, ry + half_h],
+      [rx - half_w, ry - half_h, rx + half_w, ry - half_h],
+      [rx + half_w, ry + half_h, rx - half_w, ry + half_h],
+      [rx + half_w, ry + half_h, rx + half_w, ry - half_h],
     ]
-    for line in rect_lines:
-      if Collide.line_line(lx1, ly1, lx2, ly2, line[0], line[1], line[2], line[3]):
-        return True
+    if Collide.line_lines(x1, y1, x2, y2, rect_lines) != -1:
+      return True
     
     return False
+
+  @staticmethod
+  def line_rect_XY(x1, y1, x2, y2, rx, ry, w, h):
+    if Collide.rect_point(rx, ry, w, h, x1, y1):
+      return (x1, y1)
+
+    half_w = w / 2
+    half_h = h / 2
+    rect_lines = [
+      [rx - half_w, ry - half_h, rx - half_w, ry + half_h],
+      [rx - half_w, ry - half_h, rx + half_w, ry - half_h],
+      [rx + half_w, ry + half_h, rx - half_w, ry + half_h],
+      [rx + half_w, ry + half_h, rx + half_w, ry - half_h],
+    ]
+    XYs = []
+    for l in rect_lines:
+      ix, iy = Collide.line_line_XY(x1, y1, x2, y2, l[0], l[1], l[2], l[3])
+      if ix is not None:
+        XYs.append((ix, iy))
+
+    length = len(XYs)
+    if length == 0:
+      return (None, None)
+    elif length == 1:
+      return XYs[0]
+
+    ix, iy = XYs[0]
+    shortest_dist = abs(ix - x1)
+    for XY in XYs:
+      dist = abs(XY[0] - x1)
+      if dist < shortest_dist:
+        ix, iy = XY
+        shortest_dist = dist
+
+    return (ix, iy)
 
   @staticmethod
   def circle_point(x1, y1, radius, x2, y2):
@@ -403,10 +460,10 @@ class Collide():
           px = point.x
           py = point.y
         if (
-          px < min_x
-          or px > max_x
-          or py < min_y
-          or py > max_y
+          px >= min_x
+          and px <= max_x
+          and py >= min_y
+          and py <= max_y
         ):
           return i
         i += 1

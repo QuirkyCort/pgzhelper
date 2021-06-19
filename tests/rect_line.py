@@ -47,8 +47,14 @@ def draw():
     for l in lines:
         if Collide.rect_line(r1.x, r1.y, r1.width, r1.height, l[0], l[1], l[2], l[3]):
             color = (255, 255, 0)
+            ix, iy = Collide.line_rect_XY(l[0], l[1], l[2], l[3], r1.x, r1.y, r1.width, r1.height)
+            screen.draw.circle((l[0], l[1]), 5, color='green')
+            screen.draw.circle((ix, iy), 7, color='white')
         elif Collide.rect_line(r2.x, r2.y, r2.width, r2.height, l[0], l[1], l[2], l[3]):
             color = (0, 255, 255)
+            ix, iy = Collide.line_rect_XY(l[0], l[1], l[2], l[3], r2.x, r2.y, r2.width, r2.height)
+            screen.draw.circle((l[0], l[1]), 5, color='green')
+            screen.draw.circle((ix, iy), 7, color='white')
         else:
             color = (0, 255, 0)
         screen.draw.line((l[0], l[1]), (l[2], l[3]), color)
