@@ -27,9 +27,11 @@ def draw():
         color = (255, 0, 0)
     else:
         color = (0, 255, 0)
-
     screen.draw.line((l1x1, l1y1), (l1x2, l1y2), color)
     screen.draw.line((l2x1, l2y1), (l2x2, l2y2), color)
 
+    ix, iy = Collide.line_line_XY(l1x1, l1y1, l1x2, l1y2, l2x1, l2y1, l2x2, l2y2)
+    if ix is not None:
+        screen.draw.circle((ix, iy), 5, color='white')
 
 pgzrun.go() # Must be last line
