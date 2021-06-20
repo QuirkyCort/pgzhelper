@@ -710,6 +710,40 @@ class Collide():
       return distance_to_squared(lx1, ly1, ix, iy)
     return None
 
+  @staticmethod
+  def obb_circle(x, y, w, h, angle, cx, cy, radius):
+    half_width = w / 2
+    half_height = h / 2
+    tx = cx - x
+    ty = cy - y
+
+    if tx ** 2 + ty ** 2 > (half_height + half_width + radius) ** 2:
+      return False
+
+    r_angle = math.radians(angle)
+    costheta = math.cos(r_angle)
+    sintheta = math.sin(r_angle)
+
+    rx = tx * costheta - ty * sintheta
+    ry = ty * costheta + tx * sintheta
+
+    if (rx < -half_width - radius 
+      or rx > half_width + radius 
+      or ry < -half_height - radius 
+      or ry > half_height + radius
+    ):
+      return False
+
+    if (rx <= half_width and rx >= -half_width) or (ry <= half_height and ry >= -half_height):
+      return True
+
+    dx = abs(rx) - half_width
+    dy = abs(ry) - half_height
+    dist_squared = dx ** 2 + dy ** 2
+    if dist_squared > radius ** 2:
+      return False
+
+    return True
 
 class Actor(Actor):
   def __init__(self, image, pos=POS_TOPLEFT, anchor=ANCHOR_CENTER, **kwargs):
