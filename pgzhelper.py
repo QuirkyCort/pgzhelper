@@ -156,22 +156,12 @@ class Collide():
     dot = (((cx - x1) * dx) + ((cy - y1) * dy)) / l_sq
 
     ix = x1 + dot * dx
-
-    if x1 < x2:
-      if ix < x1 or ix > x2:
-        return False
-    else:
-      if ix > x1 or ix < x2:
-        return False
+    if (ix < x1) == (ix < x2):
+      return False
 
     iy = y1 + dot * dy
-
-    if y1 < y2:
-      if iy < y1 or iy > y2:
-        return False
-    else:
-      if iy > y1 or iy < y2:
-        return False
+    if (iy < y1) == (iy < y2):
+      return False
 
     dist_sq = (ix - cx) ** 2 + (iy - cy) ** 2
     if dist_sq <= r_sq:
