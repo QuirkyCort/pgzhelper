@@ -46,12 +46,12 @@ def draw():
 
         if Collide.obb_line(r1.x, r1.y, w1, h1, r1.angle, l[0], l[1], l[0]+l[2], l[1]+l[3]):
             color = (255, 255, 0)
-            ix, iy = Collide.obb_line_XY(r1.x, r1.y, w1, h1, r1.angle, l[0], l[1], l[0]+l[2], l[1]+l[3])
+            ix, iy = Collide.line_obb_XY(l[0], l[1], l[0]+l[2], l[1]+l[3], r1.x, r1.y, w1, h1, r1.angle)
             screen.draw.circle((l[0], l[1]), 5, color='green')
             screen.draw.circle((ix, iy), 7, color='white')
         elif Collide.obb_line(r2.x, r2.y, w2, h2, r2.angle, l[0], l[1], l[0]+l[2], l[1]+l[3]):
             color = (0, 255, 255)
-            ix, iy = Collide.obb_line_XY(r2.x, r2.y, w2, h2, r2.angle, l[0], l[1], l[0]+l[2], l[1]+l[3])
+            ix, iy = Collide.line_obb_XY(l[0], l[1], l[0]+l[2], l[1]+l[3], r2.x, r2.y, w2, h2, r2.angle)
             screen.draw.circle((l[0], l[1]), 5, color='green')
             screen.draw.circle((ix, iy), 7, color='white')
         else:
