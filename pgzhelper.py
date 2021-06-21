@@ -745,6 +745,216 @@ class Collide():
 
     return True
 
+  @staticmethod
+  def obb_circles(x, y, w, h, angle, circles):
+    half_width = w / 2
+    half_height = h / 2
+    r_angle = math.radians(angle)
+    costheta = math.cos(r_angle)
+    sintheta = math.sin(r_angle)
+
+    i = 0
+    for circle in circles:
+      tx = circle[0] - x
+      ty = circle[1] - y
+
+      rx = tx * costheta - ty * sintheta
+      ry = ty * costheta + tx * sintheta
+
+      if (rx < -half_width - circle[2]
+        or rx > half_width + circle[2] 
+        or ry < -half_height - circle[2] 
+        or ry > half_height + circle[2]
+      ):
+        i += 1
+        continue
+
+      if (rx <= half_width and rx >= -half_width) or (ry <= half_height and ry >= -half_height):
+        return i
+
+      dx = abs(rx) - half_width
+      dy = abs(ry) - half_height
+      dist_squared = dx ** 2 + dy ** 2
+      if dist_squared > circle[2] ** 2:
+        i += 1
+        continue
+
+      return i
+
+    return -1
+
+  @staticmethod
+  def obb_rect(x, y, w, h, angle, rx, ry, rw, rh):
+    half_width = w / 2
+    half_height = h / 2
+    tx = rx - x
+    ty = ry - y
+
+    if tx ** 2 + ty ** 2 > (half_height + half_width + rw + rh) ** 2:
+      return False
+
+    r_angle = math.radians(angle)
+    costheta = math.cos(r_angle)
+    sintheta = math.sin(r_angle)
+
+    tx2 = tx * costheta - ty * sintheta
+    ty2 = ty * costheta + tx * sintheta
+
+    if tx2 > -half_width and tx2 < half_width and ty2 > -half_height and ty2 < half_height:
+      return True
+
+    wc = half_width * costheta
+    hs = half_height * sintheta
+    hc = half_height * costheta
+    ws = half_width * sintheta
+    p = [
+      [wc + hs, hc - ws],
+      [-wc + hs, hc + ws],      
+      [wc - hs, -hc - ws],
+      [-wc - hs, -hc + ws],      
+    ]
+    obb_lines = [
+      [p[0][0], p[0][1], p[1][0], p[1][1]],
+      [p[1][0], p[1][1], p[3][0], p[3][1]],
+      [p[3][0], p[3][1], p[2][0], p[2][1]],
+      [p[2][0], p[2][1], p[0][0], p[0][1]]
+    ]
+    h_rw = rw / 2
+    h_rh = rh / 2
+    rect_lines = [
+      [tx - h_rw, ty - h_rh, tx - h_rw, ty + h_rh],
+      [tx + h_rw, ty - h_rh, tx + h_rw, ty + h_rh],
+      [tx - h_rw, ty - h_rh, tx + h_rw, ty - h_rh],
+      [tx - h_rw, ty + h_rh, tx + h_rw, ty + h_rh]
+    ]
+
+    for obb_p in p:
+      if obb_p[0] > tx - h_rw and obb_p[0] < tx + h_rw and obb_p[1] > ty - h_rh and obb_p[1] < ty + h_rh:
+        return True
+
+    for obb_line in obb_lines:
+      l1x1 = obb_line[0]
+      l1y1 = obb_line[1]
+      l1x2 = obb_line[2]
+      l1y2 = obb_line[3]
+      l1x2_l1x1 = l1x2-l1x1
+      l1y2_l1y1 = l1y2-l1y1
+      
+      for rect_line in rect_lines:
+        l2x1 = rect_line[0]
+        l2y1 = rect_line[1]
+        l2x2 = rect_line[2]
+        l2y2 = rect_line[3]
+        
+        determinant = (l2y2-l2y1)*l1x2_l1x1 - (l2x2-l2x1)*l1y2_l1y1
+
+        # Simplify: Parallel lines are never considered to be intersecting
+        if determinant == 0:
+          continue
+
+        uA = ((l2x2-l2x1)*(l1y1-l2y1) - (l2y2-l2y1)*(l1x1-l2x1)) / determinant
+        if uA < 0 or uA > 1:
+          continue
+
+        uB = (l1x2_l1x1*(l1y1-l2y1) - l1y2_l1y1*(l1x1-l2x1)) / determinant
+        if uB < 0 or uB > 1:
+          continue
+
+        return True
+
+    return False
+
+  @staticmethod
+  def obb_rects(x, y, w, h, angle, rects):
+    half_width = w / 2
+    half_height = h / 2
+    r_angle = math.radians(angle)
+    costheta = math.cos(r_angle)
+    sintheta = math.sin(r_angle)
+
+    i = 0
+    for rect in rects:
+      rx = rect[0]
+      ry = rect[1]
+      rw = rect[2]
+      rh = rect[3]
+
+      tx = rx - x
+      ty = ry - y
+
+      if tx ** 2 + ty ** 2 > (half_height + half_width + rw + rh) ** 2:
+        i += 1
+        continue
+
+      tx2 = tx * costheta - ty * sintheta
+      ty2 = ty * costheta + tx * sintheta
+
+      if tx2 > -half_width and tx2 < half_width and ty2 > -half_height and ty2 < half_height:
+        return i
+
+      wc = half_width * costheta
+      hs = half_height * sintheta
+      hc = half_height * costheta
+      ws = half_width * sintheta
+      p = [
+        [wc + hs, hc - ws],
+        [-wc + hs, hc + ws],      
+        [wc - hs, -hc - ws],
+        [-wc - hs, -hc + ws],      
+      ]
+      obb_lines = [
+        [p[0][0], p[0][1], p[1][0], p[1][1]],
+        [p[1][0], p[1][1], p[3][0], p[3][1]],
+        [p[3][0], p[3][1], p[2][0], p[2][1]],
+        [p[2][0], p[2][1], p[0][0], p[0][1]]
+      ]
+      h_rw = rw / 2
+      h_rh = rh / 2
+      rect_lines = [
+        [tx - h_rw, ty - h_rh, tx - h_rw, ty + h_rh],
+        [tx + h_rw, ty - h_rh, tx + h_rw, ty + h_rh],
+        [tx - h_rw, ty - h_rh, tx + h_rw, ty - h_rh],
+        [tx - h_rw, ty + h_rh, tx + h_rw, ty + h_rh]
+      ]
+
+      for obb_p in p:
+        if obb_p[0] > tx - h_rw and obb_p[0] < tx + h_rw and obb_p[1] > ty - h_rh and obb_p[1] < ty + h_rh:
+          return i
+
+      for obb_line in obb_lines:
+        l1x1 = obb_line[0]
+        l1y1 = obb_line[1]
+        l1x2 = obb_line[2]
+        l1y2 = obb_line[3]
+        l1x2_l1x1 = l1x2-l1x1
+        l1y2_l1y1 = l1y2-l1y1
+        
+        for rect_line in rect_lines:
+          l2x1 = rect_line[0]
+          l2y1 = rect_line[1]
+          l2x2 = rect_line[2]
+          l2y2 = rect_line[3]
+          
+          determinant = (l2y2-l2y1)*l1x2_l1x1 - (l2x2-l2x1)*l1y2_l1y1
+
+          # Simplify: Parallel lines are never considered to be intersecting
+          if determinant == 0:
+            continue
+
+          uA = ((l2x2-l2x1)*(l1y1-l2y1) - (l2y2-l2y1)*(l1x1-l2x1)) / determinant
+          if uA < 0 or uA > 1:
+            continue
+
+          uB = (l1x2_l1x1*(l1y1-l2y1) - l1y2_l1y1*(l1x1-l2x1)) / determinant
+          if uB < 0 or uB > 1:
+            continue
+
+          return i
+
+      i += 1
+
+    return -1
+
 class Actor(Actor):
   def __init__(self, image, pos=POS_TOPLEFT, anchor=ANCHOR_CENTER, **kwargs):
     self._flip_x = False
