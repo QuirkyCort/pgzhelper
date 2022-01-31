@@ -1,10 +1,14 @@
+# from __future__ import annotations
 import math
 import pygame
 from pgzero.actor import Actor, POS_TOPLEFT, ANCHOR_CENTER, transform_anchor
 from pgzero import game, loaders
 import sys
 import time
+from typing import overload, Sequence, Tuple, Union
+from pygame import Vector2
 
+_Coordinate = Union[Tuple[float, float], Sequence[float], Vector2]
 _fullscreen = False
 
 def set_fullscreen():
@@ -956,30 +960,63 @@ class Collide():
     return -1
 
 class Actor(Actor):
-  def __init__(self, image, pos=POS_TOPLEFT, anchor=ANCHOR_CENTER, **kwargs):
+  def __init__(self, image:Union[str, pygame.Surface], pos=POS_TOPLEFT, anchor=ANCHOR_CENTER, **kwargs):
     self._flip_x = False
     self._flip_y = False
     self._scale = 1
     self._mask = None
+    self._images = None
+    self._image_idx = 0
+    self._subrects = None
+    self._transform_cnt = 0
+    self._orig_surfs = {}        
+    self._surfs = {}    
     self._animate_counter = 0
+    self._animate_run = False
     self.fps = 5
     self.direction = 0
-    super().__init__(image, pos, anchor, **kwargs)
-
-  def distance_to(self, actor):
-    return distance_to(self.x, self.y, actor.x, actor.y)
+    subrect=kwargs.pop('subrect',None)
+    image_str = None
+    if isinstance(image,str):
+      image_str = image      
+    super().__init__(image_str, pos, anchor, **kwargs)
+    if isinstance(image,pygame.Surface):
+        self._orig_surf = image        
+        self._update_pos()
+    if subrect is not None:
+      self.subrect=subrect
+      # self._orig_surf = self._surf = self._surf.subsurface(self.subrect)
+    
+  def distance_to(self, target):
+    if isinstance(target, Actor):
+      x, y = target.pos
+    else:
+      x, y = target
+    return distance_to(self.x, self.y, x, y)
 
   def distance_toXY(self, x, y):
     return distance_to(self.x, self.y, x, y)
 
-  def direction_to(self, actor):
-    return direction_to(self.x, self.y, actor.x, actor.y)
+  def direction_to(self, target):
+    if isinstance(target, Actor):
+      x, y = target.pos
+    else:
+      x, y = target
+    return direction_to(self.x, self.y, x, y)
 
   def direction_toXY(self, x, y):
     return direction_to(self.x, self.y, x, y)
 
-  def move_towards(self, actor, dist):
-    direction = self.direction_to(actor)
+
+  def move_towards(self, target:Union[int, float, Actor, _Coordinate], dist, stop_on_target=True):#
+    if isinstance(target, (int,float)):
+      direction = target
+    else:
+      direction = self.direction_to(target)
+      if stop_on_target:
+          target_distance = self.distance_to(direction)
+          if (target_distance < dist) and dist>0:
+            dist = target_distance      
     self.x, self.y = move(self.x, self.y, direction, dist)
 
   def move_towardsXY(self, x, y, dist):
@@ -1013,25 +1050,66 @@ class Actor(Actor):
 
   @images.setter
   def images(self, images):
+    self._subrects = None    
     self._images = images
     if len(self._images) != 0:
       self.image = self._images[0]
+      # for image in images:
+      #   self._orig_surfs=self._surfs = {image: loaders.images.load(image) for image in images} 
 
-  def next_image(self):
-    if self.image in self._images:
-      current = self._images.index(self.image)
-      if current == len(self._images) - 1:
-        self.image = self._images[0]
+  def load_images(self, sheet_name:str, cols:int, rows:int, cnt:int=0, subrect:pygame.Rect=None):
+    self._subrects=[None]*cols*rows
+    self._image_idx=0
+    sheet:pygame.Surface = loaders.images.load(sheet_name)
+    if subrect is not None:
+      sheet = sheet.subsurface(subrect)
+    for col in range(0,cols):
+      for row in range(0,rows):
+          width=sheet.get_width()/cols
+          height=sheet.get_height()/rows
+          self._subrects[col+row*cols]=(int(col*width),int(row*height),int(width),int(height))
+    if len(self._subrects) != 0:
+      self.image = sheet_name
+      self.subrect = self._subrects[0]
+
+  @overload
+  def sel_image(self, newimage:str):
+    self.image = newimage
+  @overload
+  def sel_image(self, newimage_idx:int):
+    self.subrect = self._subrects[newimage_idx]
+          
+  def next_image(self)-> int:
+    if self._subrects is not None:
+      next_image_idx = (self._image_idx+1) % len(self._subrects)
+      self._image_idx = next_image_idx
+      self.subrect = self._subrects[self._image_idx]
+    elif (self._images is not None) :
+      if (self.image in self._images):
+        next_image_idx = (self._images.index(self.image)) % len(self._images)
+        self._image_idx = next_image_idx
+        self.image = self._images[self._image_idx]
       else:
-        self.image = self._images[current + 1]
+        self._image_idx = 0
+        self.image = self._images[0]
     else:
-      self.image = self._images[0]
-
-  def animate(self):
+      self._image_idx = 0
+    return self._image_idx
+      
+  def animate(self)-> int:
     now = int(time.time() * self.fps)
-    if now != self._animate_counter:
+    if self._animate_counter == 0:
+      self._animate_counter=now
+    frames_elapsed = now-self._animate_counter
+
+    if frames_elapsed!=0:
       self._animate_counter = now
-      self.next_image()
+      idx=self.next_image()
+      # for frame in range(frames_elapsed):
+      #   idx=self.next_image()
+      return idx
+    else:
+      return -1
 
   @property
   def angle(self):
@@ -1041,6 +1119,7 @@ class Actor(Actor):
   def angle(self, angle):
     self._angle = angle
     self._transform_surf()
+    self._transform_cnt+=1
 
   @property
   def scale(self):
@@ -1050,6 +1129,7 @@ class Actor(Actor):
   def scale(self, scale):
     self._scale = scale
     self._transform_surf()
+    self._transform_cnt+=1
 
   @property
   def flip_x(self):
@@ -1059,6 +1139,7 @@ class Actor(Actor):
   def flip_x(self, flip_x):
     self._flip_x = flip_x
     self._transform_surf()
+    self._transform_cnt+=1
 
   @property
   def flip_y(self):
@@ -1068,6 +1149,7 @@ class Actor(Actor):
   def flip_y(self, flip_y):
     self._flip_y = flip_y
     self._transform_surf()
+    self._transform_cnt+=1
 
   @property
   def image(self):
@@ -1075,11 +1157,56 @@ class Actor(Actor):
 
   @image.setter
   def image(self, image):
-    self._image_name = image
-    self._orig_surf = self._surf = loaders.images.load(image)
+    if image is not None:
+      self._orig_surf = self._surf = loaders.images.load(image)
+      self._image_name = image
+      self._orig_surfs[image]=self._orig_surf     
+    else:
+      self._orig_surf = self._surf = pygame.Surface((1,1),pygame.SRCALPHA)
+      self._image_name = ''
+    self._update_pos()
+    if image is not None:
+      if (image not in self._surfs) or (self._surfs[image][1]!=self._transform_cnt):       
+        self._transform_surf()
+        self._surfs[image]=(self._surf,self._transform_cnt)
+
+  @property
+  def subrect(self):
+    return self.subrect
+  @subrect.setter
+  def subrect(self, subrect:pygame.Rect):
+    if subrect is not None:
+      subr=pygame.Rect(subrect)      
+      hashv=hash((subr.x, subr.y,subr.width,subr.height))
+      surf_name=self._image_name+str(hashv)
+      if surf_name not in self._orig_surfs:
+        self._orig_surfs[surf_name] = loaders.images.load(self.image).subsurface(subrect)
+      self._orig_surf=self._orig_surfs[surf_name]
+      self._update_pos()
+      if (surf_name not in self._surfs) or (self._surfs[surf_name][1]!=self._transform_cnt):       
+        self._transform_surf()
+        self._surfs[surf_name]=(self._surf,self._transform_cnt) 
+      self._surf=self._surfs[surf_name][0]     
+    else:
+      self._orig_surf = self._surf = loaders.images.load(self.image)
+      self._update_pos()
+      self._transform_surf()
+    
+  @property
+  def orig_surf(self):
+    return self._orig_surf
+  
+  @orig_surf.setter
+  def orig_surf(self, surf:pygame.Surface):
+    self._orig_surf = self._surf =surf
     self._update_pos()
     self._transform_surf()
-
+  
+  def recalc(self):
+    self._surf = self._orig_surf
+    self._update_pos()
+    self._transform_surf()
+                
   def _transform_surf(self):
     self._surf = self._orig_surf
     p = self.pos
@@ -1102,7 +1229,7 @@ class Actor(Actor):
 
     self.pos = p
     self._mask = None
-
+    
   def collidepoint_pixel(self, x, y=0):
     if isinstance(x, tuple):
       y = x[1]
