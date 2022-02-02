@@ -984,7 +984,7 @@ class Actor(Actor):
         self._orig_surf = image        
         self._update_pos()
     if subrect is not None:
-      self.subrect=subrect
+      self._subrect=subrect
       # self._orig_surf = self._surf = self._surf.subsurface(self.subrect)
     
   def distance_to(self, target):
@@ -1172,25 +1172,29 @@ class Actor(Actor):
 
   @property
   def subrect(self):
-    return self.subrect
+    return self._subrect
   @subrect.setter
   def subrect(self, subrect:pygame.Rect):
+    subr = subrect
     if subrect is not None:
-      subr=pygame.Rect(subrect)      
-      hashv=hash((subr.x, subr.y,subr.width,subr.height))
-      surf_name=self._image_name+str(hashv)
-      if surf_name not in self._orig_surfs:
-        self._orig_surfs[surf_name] = loaders.images.load(self.image).subsurface(subrect)
-      self._orig_surf=self._orig_surfs[surf_name]
-      self._update_pos()
-      if (surf_name not in self._surfs) or (self._surfs[surf_name][1]!=self._transform_cnt):       
+      subr=pygame.Rect(subrect) 
+    if subr != self._subrect:     
+      self._subrect = subr
+      if self._subrect is not None:
+        hashv=hash((subr.x, subr.y,subr.width,subr.height))
+        surf_name=self._image_name+str(hashv)
+        if surf_name not in self._orig_surfs:
+          self._orig_surfs[surf_name] = loaders.images.load(self.image).subsurface(subr)
+        self._orig_surf=self._orig_surfs[surf_name]
+        self._update_pos()
+        if (surf_name not in self._surfs) or (self._surfs[surf_name][1]!=self._transform_cnt):       
+          self._transform_surf()
+          self._surfs[surf_name]=(self._surf,self._transform_cnt) 
+        self._surf=self._surfs[surf_name][0]     
+      else:
+        self._orig_surf = self._surf = loaders.images.load(self.image)
+        self._update_pos()
         self._transform_surf()
-        self._surfs[surf_name]=(self._surf,self._transform_cnt) 
-      self._surf=self._surfs[surf_name][0]     
-    else:
-      self._orig_surf = self._surf = loaders.images.load(self.image)
-      self._update_pos()
-      self._transform_surf()
     
   @property
   def orig_surf(self):
