@@ -1301,7 +1301,7 @@ class Actor(Actor):
     return Collide.circle_circle(self.centerx, self.centery, self._radius, actor.centerx, actor.centery, actor._radius)
 
   def circle_colliderect(self, actor):
-    return Collide.circle_rect(self.centerx, self.centery, self._radius, actor.left, actor.top, actor.width, actor.height)
+    return Collide.circle_rect(self.centerx, self.centery, self._radius, actor.centerx, actor.centery, actor.width, actor.height)
 
   def draw(self):
     game.screen.blit(self._surf, self.topleft)
