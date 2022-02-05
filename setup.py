@@ -1,7 +1,6 @@
 import io
 import os.path
 from setuptools import setup
-import pgzero
 
 path = os.path.join(os.path.dirname(__file__), 'README.rst')
 with io.open(path, encoding='utf8') as f:
@@ -13,7 +12,7 @@ install_requires = [
 
 setup(
     name='pgzhelper',
-    version=pgzero.__version__,
+    version='1.0b0',
     description="Pygame Zero Helper enhance Pygame Zero with additional capabilities",
     long_description=LONG_DESCRIPTION,
     author='Cort',
