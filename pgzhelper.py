@@ -1277,11 +1277,11 @@ class Actor(Actor):
 
   def obb_collidepoint(self, x, y):
     w, h = self._orig_surf.get_size()
-    return Collide.obb_point(self.x, self.y, w, h, self._angle, x, y)
+    return Collide.obb_point(self.centerx, self.centery, w, h, self._angle, x, y)
 
   def obb_collidepoints(self, points):
     w, h = self._orig_surf.get_size()
-    return Collide.obb_points(self.x, self.y, w, h, self._angle, points)
+    return Collide.obb_points(self.centerx, self.centery, w, h, self._angle, points)
 
   @property
   def radius(self):
@@ -1292,16 +1292,16 @@ class Actor(Actor):
     self._radius = radius
 
   def circle_collidepoints(self, points):
-    return Collide.circle_points(self.x, self.y, self._radius, points)
+    return Collide.circle_points(self.centerx, self.centery, self._radius, points)
 
   def circle_collidepoint(self, x, y):
-    return Collide.circle_point(self.x, self.y, self._radius, x, y)
+    return Collide.circle_point(self.centerx, self.centery, self._radius, x, y)
 
   def circle_collidecircle(self, actor):
-    return Collide.circle_circle(self.x, self.y, self._radius, actor.x, actor.y, actor._radius)
+    return Collide.circle_circle(self.centerx, self.centery, self._radius, actor.centerx, actor.centery, actor._radius)
 
   def circle_colliderect(self, actor):
-    return Collide.circle_rect(self.x, self.y, self._radius, actor.left, actor.top, actor.width, actor.height)
+    return Collide.circle_rect(self.centerx, self.centery, self._radius, actor.centerx, actor.centery, actor.width, actor.height)
 
   def draw(self):
     game.screen.blit(self._surf, self.topleft)
