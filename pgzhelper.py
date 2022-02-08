@@ -1086,7 +1086,7 @@ class Actor(Actor):
       self.subrect = self._subrects[self._image_idx]
     elif (self._images is not None) :
       if (self.image in self._images):
-        next_image_idx = (self._images.index(self.image)) % len(self._images)
+        next_image_idx = (self._images.index(self.image)+1) % len(self._images)
         self._image_idx = next_image_idx
         self.image = self._images[self._image_idx]
       else:
