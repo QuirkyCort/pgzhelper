@@ -959,6 +959,29 @@ class Collide():
 
     return -1
 
+  def obb_obb(x, y, w, h, angle, x2, y2, w2, h2, angle2):
+    r_angle = math.radians(angle)
+    costheta = math.cos(r_angle)
+    sintheta = math.sin(r_angle)
+
+    tx2 = x2 - x
+    ty2 = y2 - y 
+    rx2 = tx2 * costheta - ty2 * sintheta
+    ry2 = ty2 * costheta + tx2 * sintheta
+    return Collide.obb_rect(rx2, ry2, w2, h2, angle2-angle, 0, 0, w, h)
+    
+  def obb_obbs(x, y, w, h, angle, obbs):
+    r_angle = math.radians(angle)
+    costheta = math.cos(r_angle)
+    sintheta = math.sin(r_angle)
+    for obb in obbs:
+      x2, y2, w2, h2, angle2 = obb
+      tx2 = x2 - x
+      ty2 = y2 - y 
+      rx2 = tx2 * costheta - ty2 * sintheta
+      ry2 = ty2 * costheta + tx2 * sintheta
+      return Collide.obb_rect(rx2, ry2, w2, h2, angle2-angle, 0, 0, w, h)
+      
 class Actor(Actor):
   def __init__(self, image:Union[str, pygame.Surface], pos=POS_TOPLEFT, anchor=ANCHOR_CENTER, **kwargs):
     self._flip_x = False
@@ -1283,6 +1306,12 @@ class Actor(Actor):
     w, h = self._orig_surf.get_size()
     return Collide.obb_points(self.centerx, self.centery, w, h, self._angle, points)
 
+  def obb_collideobb(self, actor):
+    w, h = self._orig_surf.get_size()
+    w2, h2 = actor._orig_surf.get_size()
+    return Collide.obb_points(self.centerx, self.centery, w, h, self._angle,
+                              actor.centerx, actor.centery, w2, h2, actor._angle,points)
+    
   @property
   def radius(self):
     return self._radius
