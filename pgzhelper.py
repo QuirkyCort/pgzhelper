@@ -981,6 +981,7 @@ class Collide():
       rx2 = tx2 * costheta - ty2 * sintheta
       ry2 = ty2 * costheta + tx2 * sintheta
       return Collide.obb_rect(rx2, ry2, w2, h2, angle2-angle, 0, 0, w, h)
+
       
 class Actor(Actor):
   def __init__(self, image:Union[str, pygame.Surface], pos=POS_TOPLEFT, anchor=ANCHOR_CENTER, **kwargs):
@@ -1331,6 +1332,11 @@ class Actor(Actor):
 
   def circle_colliderect(self, actor):
     return Collide.circle_rect(self.centerx, self.centery, self._radius, actor.centerx, actor.centery, actor.width, actor.height)
+
+  def circle_collideobb(self, actor):
+    w2, h2 = self.actor.get_size()
+    return Collide.obb_circle(actor.centerx, actor.centery, w2, h2, actor.angle,
+                              self.centerx, self.centery, self._radius)
 
   def draw(self):
     game.screen.blit(self._surf, self.topleft)
