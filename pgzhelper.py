@@ -1010,7 +1010,6 @@ class Actor(Actor):
     self._subrect=None
     if subrect is not None:
       self.subrect=subrect
-      # self._orig_surf = self._surf = self._surf.subsurface(self.subrect)
     
   def distance_to(self, target):
     if isinstance(target, Actor):
@@ -1033,7 +1032,7 @@ class Actor(Actor):
     return direction_to(self.x, self.y, x, y)
 
 
-  def move_towards(self, target:Union[int, float, Actor, _Coordinate], dist, stop_on_target=True):#
+  def move_towards(self, target:Union[int, float, Actor, _Coordinate], dist, stop_on_target=True):
     if isinstance(target, (int,float)):
       direction = target
     else:
@@ -1079,8 +1078,6 @@ class Actor(Actor):
     self._images = images
     if len(self._images) != 0:
       self.image = self._images[0]
-      # for image in images:
-      #   self._orig_surfs=self._surfs = {image: loaders.images.load(image) for image in images} 
 
   def load_images(self, sheet_name:str, cols:int, rows:int, cnt:int=0, subrect:pygame.Rect=None):
     self._subrects=[None]*cols*rows
@@ -1140,8 +1137,6 @@ class Actor(Actor):
     if frames_elapsed!=0:
       self._animate_counter = now
       idx=self.next_image()
-      # for frame in range(frames_elapsed):
-      #   idx=self.next_image()
       return idx
     else:
       return -1
