@@ -1007,8 +1007,9 @@ class Actor(Actor):
     if isinstance(image,pygame.Surface):
         self._orig_surf = image        
         self._update_pos()
+    self._subrect=None
     if subrect is not None:
-      self._subrect=subrect
+      self.subrect=subrect
       # self._orig_surf = self._surf = self._surf.subsurface(self.subrect)
     
   def distance_to(self, target):
@@ -1096,12 +1097,22 @@ class Actor(Actor):
       self.image = sheet_name
       self.subrect = self._subrects[0]
 
-  @overload
-  def sel_image(self, newimage:str):
-    self.image = newimage
-  @overload
-  def sel_image(self, newimage_idx:int):
-    self.subrect = self._subrects[newimage_idx]
+  def sel_image(self, newimage:Union[str, int])-> bool:
+    try:
+      if isinstance(newimage, int):
+          if self._subrects is None and self._images is None:
+            return False
+          if self._subrects is not None:
+            self.subrect = self._subrects[newimage]
+          else:
+            self.image = self._images[newimage]
+          self._image_idx = newimage
+          return True
+      else:
+        self._image_idx = self._images.index(newimage)
+        self.image = newimage
+    except:
+      return False
           
   def next_image(self)-> int:
     if self._subrects is not None:
