@@ -6,17 +6,18 @@ import time
 WIDTH=800
 HEIGHT=600
 
-r1 = Actor('rect200')
+# r1 = Actor('rect200', anchor=("left", "bottom"))
+r1 = Actor('rect200', anchor=(7.5, 30))
 r2 = Actor('square150')
 w1 = r1.width
 h1 = r1.height
 w2 = r2.width
 h2 = r2.height
 
-r1.x = random.randint(100, 700)
+r1.x = random.randint(100, 300)
 r1.y = random.randint(100, 500)
 r1.angle = random.randint(0, 359)
-r2.x = random.randint(100, 700)
+r2.x = random.randint(400, 700)
 r2.y = random.randint(100, 500)
 r2.angle = random.randint(0, 359)
 
@@ -52,17 +53,20 @@ def on_mouse_move(pos):
     mouse_pos = pos
 
 def update(d):
-    pass
+    r2.angle += 0.4
+    r1.angle += 0.4
 
 def draw():
     screen.clear()
 
     r1.draw()
+    screen.draw.circle((r1.x, r1.y), 2, (255, 255, 0),0)
     r2.draw()
+    screen.draw.circle((r2.x, r2.y), 2, (0, 255, 255),0)
 
-    if Collide.obb_obb(r1.x, r1.y, w1, h1, r1.angle, mouse_pos[0], mouse_pos[1], r_w, r_h, r_a):
+    if Collide.obb_obb(r1.centerx, r1.centery, w1, h1, r1.angle, mouse_pos[0], mouse_pos[1], r_w, r_h, r_a):
         color = (255, 255, 0)
-    elif Collide.obb_obb(r2.x, r2.y, w2, h2, r2.angle, mouse_pos[0], mouse_pos[1], r_w, r_h, r_a):
+    elif Collide.obb_obb(r2.centerx, r2.centery, w2, h2, r2.angle, mouse_pos[0], mouse_pos[1], r_w, r_h, r_a):
         color = (0, 255, 255)
     else:
         color = (0, 255, 0)
