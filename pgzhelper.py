@@ -5,7 +5,7 @@ from pgzero.actor import Actor, POS_TOPLEFT, ANCHOR_CENTER, transform_anchor
 from pgzero import game, loaders
 import sys
 import time
-from typing import overload, Sequence, Tuple, Union
+from typing import Sequence, Tuple, Union
 from pygame import Vector2
 
 _Coordinate = Union[Tuple[float, float], Sequence[float], Vector2]
@@ -1316,8 +1316,8 @@ class Actor(Actor):
   def obb_collideobb(self, actor):
     w, h = self._orig_surf.get_size()
     w2, h2 = actor._orig_surf.get_size()
-    return Collide.obb_points(self.centerx, self.centery, w, h, self._angle,
-                              actor.centerx, actor.centery, w2, h2, actor._angle,points)
+    return Collide.obb_obb(self.centerx, self.centery, w, h, self._angle,
+                              actor.centerx, actor.centery, w2, h2, actor._angle)
     
   @property
   def radius(self):
