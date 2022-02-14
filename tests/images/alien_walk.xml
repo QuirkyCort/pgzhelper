@@ -1,5 +1,0 @@
-<TextureAtlas imagePath="alien_walk.png" width="205" height="98">
-    <SubTexture name="alien_stand" x="138" y="1" width="66" height="92"/>
-    <SubTexture name="alien_walk1" x="70" y="1" width="66" height="93"/>
-    <SubTexture name="alien_walk2" x="1" y="1" width="67" height="96"/>
-</TextureAtlas>
