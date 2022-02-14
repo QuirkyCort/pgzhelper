@@ -8,7 +8,7 @@ HEIGHT=600
 
 # r1 = Actor('rect200', anchor=("left", "bottom"))
 r1 = Actor('rect200', anchor=(7.5, 30))
-r2 = Actor('square150')
+r2 = Actor('square150', anchor=(130, 80))
 w1 = r1.width
 h1 = r1.height
 w2 = r2.width
@@ -22,9 +22,9 @@ r2.y = random.randint(100, 500)
 r2.angle = random.randint(0, 359)
 
 
-r_w = 30
+r_w = 60
 r_h = 30
-r_a = 45
+r_a = 70
 
 def obb_points(x, y, w, h, angle):
     half_w = w / 2

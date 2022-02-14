@@ -7,7 +7,7 @@ WIDTH=800
 HEIGHT=600
 
 r1 = Actor('rect200')
-r2 = Actor('square150')
+r2 = Actor('square150', anchor=(20, 60))
 w1 = r1.width
 h1 = r1.height
 w2 = r2.width
@@ -38,12 +38,12 @@ def draw():
     r1.draw()
     r2.draw()
 
-    if Collide.obb_rect(r1.x, r1.y, w1, h1, r1.angle, mouse_pos[0], mouse_pos[1], r_w, r_h):
+    if Collide.obb_rect(r1.centerx, r1.centery, w1, h1, r1.angle, mouse_pos[0], mouse_pos[1], r_w, r_h):
         color = (255, 255, 0)
-    elif Collide.obb_rect(r2.x, r2.y, w2, h2, r2.angle, mouse_pos[0], mouse_pos[1], r_w, r_h):
+    elif Collide.obb_rect(r2.centerx, r2.centery, w2, h2, r2.angle, mouse_pos[0], mouse_pos[1], r_w, r_h):
         color = (0, 255, 255)
     else:
-        color = (0, 55, 0)
+        color = (0, 255, 0)
     screen.draw.rect(Rect(mouse_pos[0] - r_w / 2, mouse_pos[1] - r_h / 2, r_w, r_h), color)
 
 pgzrun.go() # Must be last line
