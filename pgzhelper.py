@@ -422,7 +422,7 @@ class Collide():
 
   @staticmethod
   def line_obb_dist_squared(x1, y1, x2, y2, ox, oy, w, h, angle):
-    ix, iy = Collide.obb_line_XY(x1, y1, x2, y2, ox, oy, w, h, angle)
+    ix, iy = Collide.line_obb_XY(x1, y1, x2, y2, ox, oy, w, h, angle)
     if ix is not None:
       return distance_to_squared(x1, y1, ix, iy)
     return None
