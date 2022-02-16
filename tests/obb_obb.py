@@ -24,38 +24,20 @@ r3 = Actor('square50')
 r3_w = 60
 r3_h = 30
 
-def obb_points(x, y, w, h, angle):
-    half_w = w / 2
-    half_h = h / 2
-    r_angle = math.radians(angle)
-    costheta = math.cos(r_angle)
-    sintheta = math.sin(r_angle)
-
-    wc = half_w * costheta
-    hs = half_h * sintheta
-    hc = half_h * costheta
-    ws = half_w * sintheta
-    points = [
-        [x + wc + hs, y + hc - ws],
-        [x - wc + hs, y + hc + ws],
-        [x - wc - hs, y - hc + ws],
-        [x + wc - hs, y - hc - ws],
-    ]
-    return points
-
-
 def on_mouse_move(pos):
     r3.x = pos[0]
     r3.y = pos[1]
 
 def on_mouse_down(pos, button):
-    global r_w, r_h
+    global r3_w, r3_h
     if button == 4:
-        r_w += 10
-        r_h += 10
+        r3.scale *= 1.1
+        r3_w *= 1.1
+        r3_h *= 1.1
     if button == 5:
-        r_w -= 10
-        r_h -= 10
+        r3.scale *= 0.9
+        r3_w *= 0.9
+        r3_h *= 0.9
 
 
 def update(d):
