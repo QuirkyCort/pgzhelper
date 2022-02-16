@@ -21,10 +21,9 @@ r2.x = random.randint(400, 700)
 r2.y = random.randint(100, 500)
 r2.angle = random.randint(0, 359)
 
-
-r_w = 60
-r_h = 30
-r_a = 70
+r3 = Actor('square50')
+r3_w = 60
+r3_h = 30
 
 def obb_points(x, y, w, h, angle):
     half_w = w / 2
@@ -46,31 +45,27 @@ def obb_points(x, y, w, h, angle):
     return points
 
 
-mouse_pos = [0, 0]
-
 def on_mouse_move(pos):
-    global mouse_pos
-    mouse_pos = pos
+    r3.x = pos[0]
+    r3.y = pos[1]
 
 def update(d):
-    r2.angle += 0.4
-    r1.angle += 0.4
+    r2.angle += 0.2
+    r1.angle += 0.2
+    r3.angle -= 0.3
 
 def draw():
     screen.clear()
 
     r1.draw()
-    screen.draw.circle((r1.x, r1.y), 2, (255, 255, 0),0)
+    screen.draw.circle((r1.x, r1.y), 2, (255, 255, 0))
     r2.draw()
-    screen.draw.circle((r2.x, r2.y), 2, (0, 255, 255),0)
+    screen.draw.circle((r2.x, r2.y), 2, (0, 255, 255))
+    r3.draw()
 
-    if Collide.obb_obb(r1.centerx, r1.centery, w1, h1, r1.angle, mouse_pos[0], mouse_pos[1], r_w, r_h, r_a):
-        color = (255, 255, 0)
-    elif Collide.obb_obb(r2.centerx, r2.centery, w2, h2, r2.angle, mouse_pos[0], mouse_pos[1], r_w, r_h, r_a):
-        color = (0, 255, 255)
-    else:
-        color = (0, 255, 0)
-    pts = obb_points(*mouse_pos, r_w, r_h, r_a)
-    screen.draw.polygon(pts, color)
+    if Collide.obb_obb(r1.centerx, r1.centery, w1, h1, r1.angle, r3.x, r3.y, r3_w, r3_h, r3.angle):
+        screen.draw.text('Yellow rect hit', (0,0), color='white')
+    elif Collide.obb_obb(r2.centerx, r2.centery, w2, h2, r2.angle, r3.x, r3.y, r3_w, r3_h, r3.angle):
+        screen.draw.text('Cyan square hit', (0,100), color='white')
 
 pgzrun.go() # Must be last line
