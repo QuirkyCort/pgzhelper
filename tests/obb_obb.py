@@ -21,8 +21,8 @@ r2.y = random.randint(100, 500)
 r2.angle = random.randint(0, 359)
 
 r3 = Actor('square50')
-r3_w = 60
-r3_h = 30
+r3_w = 50
+r3_h = 50
 
 def on_mouse_move(pos):
     r3.x = pos[0]
