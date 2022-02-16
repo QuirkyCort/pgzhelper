@@ -1305,17 +1305,22 @@ class Actor(Actor):
         collided.append(i)
     return collided
 
+  def _unrotated_size(self):
+      w = self._orig_surf.get_width()*self.scale
+      h = self._orig_surf.get_height()*self.scale
+      return w, h
+    
   def obb_collidepoint(self, x, y):
-    w, h = self._orig_surf.get_size()
+    w,h = self._unrotated_size()
     return Collide.obb_point(self.centerx, self.centery, w, h, self._angle, x, y)
 
   def obb_collidepoints(self, points):
-    w, h = self._orig_surf.get_size()
+    w,h = self._unrotated_size()
     return Collide.obb_points(self.centerx, self.centery, w, h, self._angle, points)
 
   def obb_collideobb(self, actor):
-    w, h = self._orig_surf.get_size()
-    w2, h2 = actor._orig_surf.get_size()
+    w,h = self._unrotated_size()
+    w2,h2 = self._unrotated_size()
     return Collide.obb_obb(self.centerx, self.centery, w, h, self._angle,
                               actor.centerx, actor.centery, w2, h2, actor._angle)
     
@@ -1340,7 +1345,7 @@ class Actor(Actor):
     return Collide.circle_rect(self.centerx, self.centery, self._radius, actor.centerx, actor.centery, actor.width, actor.height)
 
   def circle_collideobb(self, actor):
-    w2, h2 = self.actor.get_size()
+    w2, h2 = actor._unrotated_size()
     return Collide.obb_circle(actor.centerx, actor.centery, w2, h2, actor.angle,
                               self.centerx, self.centery, self._radius)
 

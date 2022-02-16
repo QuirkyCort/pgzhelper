@@ -1,10 +1,9 @@
 import pgzrun
 import random
 from pgzhelper import *
-import time
 
-WIDTH=800
-HEIGHT=600
+WIDTH = 800
+HEIGHT = 600
 
 # r1 = Actor('rect200', anchor=("left", "bottom"))
 r1 = Actor('rect200', anchor=(7.5, 30))
@@ -52,6 +51,16 @@ def on_mouse_move(pos):
     global mouse_pos
     mouse_pos = pos
 
+def on_mouse_down(pos, button):
+    global r_w, r_h
+    if button == 4:
+        r_w += 10
+        r_h += 10
+    if button == 5:
+        r_w -= 10
+        r_h -= 10
+
+
 def update(d):
     r2.angle += 0.4
     r1.angle += 0.4
@@ -60,9 +69,9 @@ def draw():
     screen.clear()
 
     r1.draw()
-    screen.draw.circle((r1.x, r1.y), 2, (255, 255, 0),0)
+    screen.draw.circle((r1.x, r1.y), 2, (255, 255, 0), 0)
     r2.draw()
-    screen.draw.circle((r2.x, r2.y), 2, (0, 255, 255),0)
+    screen.draw.circle((r2.x, r2.y), 2, (0, 255, 255), 0)
 
     if Collide.obb_obb(r1.centerx, r1.centery, w1, h1, r1.angle, mouse_pos[0], mouse_pos[1], r_w, r_h, r_a):
         color = (255, 255, 0)
@@ -73,4 +82,5 @@ def draw():
     pts = obb_points(*mouse_pos, r_w, r_h, r_a)
     screen.draw.polygon(pts, color)
 
-pgzrun.go() # Must be last line
+
+pgzrun.go()  # Must be last line
