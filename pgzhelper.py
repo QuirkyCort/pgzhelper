@@ -5,7 +5,7 @@ from pgzero.actor import Actor, POS_TOPLEFT, ANCHOR_CENTER, transform_anchor
 from pgzero import game, loaders
 import sys
 import time
-from typing import overload, Sequence, Tuple, Union
+from typing import Sequence, Tuple, Union
 from pygame import Vector2
 
 _Coordinate = Union[Tuple[float, float], Sequence[float], Vector2]
@@ -160,11 +160,11 @@ class Collide():
     dot = (((cx - x1) * dx) + ((cy - y1) * dy)) / l_sq
 
     ix = x1 + dot * dx
-    if (ix < x1) == (ix < x2):
+    if (dx!=0) and (ix < x1) == (ix < x2):
       return False
 
     iy = y1 + dot * dy
-    if (iy < y1) == (iy < y2):
+    if (dy!=0) and (iy < y1) == (iy < y2):
       return False
 
     dist_sq = (ix - cx) ** 2 + (iy - cy) ** 2
@@ -959,6 +959,30 @@ class Collide():
 
     return -1
 
+  def obb_obb(x, y, w, h, angle, x2, y2, w2, h2, angle2):
+    r_angle = math.radians(angle)
+    costheta = math.cos(r_angle)
+    sintheta = math.sin(r_angle)
+
+    tx2 = x2 - x
+    ty2 = y2 - y 
+    rx2 = tx2 * costheta - ty2 * sintheta
+    ry2 = ty2 * costheta + tx2 * sintheta
+    return Collide.obb_rect(rx2, ry2, w2, h2, angle2-angle, 0, 0, w, h)
+    
+  def obb_obbs(x, y, w, h, angle, obbs):
+    r_angle = math.radians(angle)
+    costheta = math.cos(r_angle)
+    sintheta = math.sin(r_angle)
+    for obb in obbs:
+      x2, y2, w2, h2, angle2 = obb
+      tx2 = x2 - x
+      ty2 = y2 - y 
+      rx2 = tx2 * costheta - ty2 * sintheta
+      ry2 = ty2 * costheta + tx2 * sintheta
+      return Collide.obb_rect(rx2, ry2, w2, h2, angle2-angle, 0, 0, w, h)
+
+      
 class Actor(Actor):
   def __init__(self, image:Union[str, pygame.Surface], pos=POS_TOPLEFT, anchor=ANCHOR_CENTER, **kwargs):
     self._flip_x = False
@@ -983,9 +1007,9 @@ class Actor(Actor):
     if isinstance(image,pygame.Surface):
         self._orig_surf = image        
         self._update_pos()
+    self._subrect=None
     if subrect is not None:
-      self._subrect=subrect
-      # self._orig_surf = self._surf = self._surf.subsurface(self.subrect)
+      self.subrect=subrect
     
   def distance_to(self, target):
     if isinstance(target, Actor):
@@ -1008,7 +1032,7 @@ class Actor(Actor):
     return direction_to(self.x, self.y, x, y)
 
 
-  def move_towards(self, target:Union[int, float, Actor, _Coordinate], dist, stop_on_target=True):#
+  def move_towards(self, target:Union[int, float, Actor, _Coordinate], dist, stop_on_target=True):
     if isinstance(target, (int,float)):
       direction = target
     else:
@@ -1054,8 +1078,6 @@ class Actor(Actor):
     self._images = images
     if len(self._images) != 0:
       self.image = self._images[0]
-      # for image in images:
-      #   self._orig_surfs=self._surfs = {image: loaders.images.load(image) for image in images} 
 
   def load_images(self, sheet_name:str, cols:int, rows:int, cnt:int=0, subrect:pygame.Rect=None):
     self._subrects=[None]*cols*rows
@@ -1072,12 +1094,22 @@ class Actor(Actor):
       self.image = sheet_name
       self.subrect = self._subrects[0]
 
-  @overload
-  def sel_image(self, newimage:str):
-    self.image = newimage
-  @overload
-  def sel_image(self, newimage_idx:int):
-    self.subrect = self._subrects[newimage_idx]
+  def sel_image(self, newimage:Union[str, int])-> bool:
+    try:
+      if isinstance(newimage, int):
+          if self._subrects is None and self._images is None:
+            return False
+          if self._subrects is not None:
+            self.subrect = self._subrects[newimage]
+          else:
+            self.image = self._images[newimage]
+          self._image_idx = newimage
+          return True
+      else:
+        self._image_idx = self._images.index(newimage)
+        self.image = newimage
+    except:
+      return False
           
   def next_image(self)-> int:
     if self._subrects is not None:
@@ -1086,7 +1118,7 @@ class Actor(Actor):
       self.subrect = self._subrects[self._image_idx]
     elif (self._images is not None) :
       if (self.image in self._images):
-        next_image_idx = (self._images.index(self.image)) % len(self._images)
+        next_image_idx = (self._images.index(self.image)+1) % len(self._images)
         self._image_idx = next_image_idx
         self.image = self._images[self._image_idx]
       else:
@@ -1105,8 +1137,6 @@ class Actor(Actor):
     if frames_elapsed!=0:
       self._animate_counter = now
       idx=self.next_image()
-      # for frame in range(frames_elapsed):
-      #   idx=self.next_image()
       return idx
     else:
       return -1
@@ -1283,6 +1313,12 @@ class Actor(Actor):
     w, h = self._orig_surf.get_size()
     return Collide.obb_points(self.centerx, self.centery, w, h, self._angle, points)
 
+  def obb_collideobb(self, actor):
+    w, h = self._orig_surf.get_size()
+    w2, h2 = actor._orig_surf.get_size()
+    return Collide.obb_obb(self.centerx, self.centery, w, h, self._angle,
+                              actor.centerx, actor.centery, w2, h2, actor._angle)
+    
   @property
   def radius(self):
     return self._radius
@@ -1302,6 +1338,11 @@ class Actor(Actor):
 
   def circle_colliderect(self, actor):
     return Collide.circle_rect(self.centerx, self.centery, self._radius, actor.centerx, actor.centery, actor.width, actor.height)
+
+  def circle_collideobb(self, actor):
+    w2, h2 = self.actor.get_size()
+    return Collide.obb_circle(actor.centerx, actor.centery, w2, h2, actor.angle,
+                              self.centerx, self.centery, self._radius)
 
   def draw(self):
     game.screen.blit(self._surf, self.topleft)
