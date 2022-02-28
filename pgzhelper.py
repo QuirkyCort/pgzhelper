@@ -997,6 +997,9 @@ class Actor(Actor):
     self._surfs = {}    
     self._animate_counter = 0
     self._animate_run = False
+    self._radius = None
+    self._collision_width = None
+    self._collision_height = None
     self.fps = 5
     self.direction = 0
     subrect=kwargs.pop('subrect',None)
@@ -1310,6 +1313,28 @@ class Actor(Actor):
       h = self._orig_surf.get_height()*self.scale
       return w, h
     
+  @property
+  def collision_width(self):
+    if self._collision_width is None:
+      w,_ = self._unrotated_size()
+      self._collision_width = w
+    return self._collision_width
+
+  @collision_width.setter
+  def collision_width(self, collision_width):
+    self._collision_width = collision_width
+
+  @property
+  def collision_height(self):
+    if self._collision_height is None:
+      _,h = self._unrotated_size()
+      self._collision_height = h
+    return self._collision_height
+
+  @collision_height.setter
+  def collision_height(self, collision_height):
+    self._collision_height = collision_height
+
   def obb_collidepoint(self, x, y):
     w,h = self._unrotated_size()
     return Collide.obb_point(self.centerx, self.centery, w, h, self._angle, x, y)
@@ -1319,13 +1344,16 @@ class Actor(Actor):
     return Collide.obb_points(self.centerx, self.centery, w, h, self._angle, points)
 
   def obb_collideobb(self, actor):
-    w,h = self._unrotated_size()
-    w2,h2 = self._unrotated_size()
-    return Collide.obb_obb(self.centerx, self.centery, w, h, self._angle,
-                              actor.centerx, actor.centery, w2, h2, actor._angle)
+    # w,h = self._unrotated_size()
+    # w2,h2 = self._unrotated_size()
+    return Collide.obb_obb(self.x, self.y, self.collision_width, self.collision_height, self._angle,
+                              actor.x, actor.y, actor.collision_width, actor.collision_height, actor._angle)
     
   @property
   def radius(self):
+    if self._radius is None:
+      w,h = self._unrotated_size()
+      self._radius = min(w, h)
     return self._radius
 
   @radius.setter
