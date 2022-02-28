@@ -10,7 +10,7 @@ tank.y = 300
 tank.collision_width = 109
 tank.collision_height = 100
 
-obs1 = Actor('square150')
+obs1 = Actor('square150', anchor=(0,0))
 obs1.angle = 45
 obs1.x = 100
 obs1.y = 100
@@ -33,7 +33,7 @@ def update():
     elif keyboard.right:
         tank.angle -= 1
 
-    for obs in (obs1, obs2):
+    for obs in [obs1, obs2]:
         if tank.obb_collideobb(obs):
             tank.x, tank.y, tank.angle = orig_x, orig_y, orig_angle
             break

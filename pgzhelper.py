@@ -1317,7 +1317,7 @@ class Actor(Actor):
   def collision_width(self):
     if self._collision_width is None:
       w,_ = self._unrotated_size()
-      self._collision_width = w
+      return w
     return self._collision_width
 
   @collision_width.setter
@@ -1328,7 +1328,7 @@ class Actor(Actor):
   def collision_height(self):
     if self._collision_height is None:
       _,h = self._unrotated_size()
-      self._collision_height = h
+      return h
     return self._collision_height
 
   @collision_height.setter
