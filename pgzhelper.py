@@ -1344,10 +1344,18 @@ class Actor(Actor):
     return Collide.obb_points(self.centerx, self.centery, w, h, self._angle, points)
 
   def obb_collideobb(self, actor):
-    # w,h = self._unrotated_size()
-    # w2,h2 = self._unrotated_size()
-    return Collide.obb_obb(self.x, self.y, self.collision_width, self.collision_height, self._angle,
-                              actor.x, actor.y, actor.collision_width, actor.collision_height, actor._angle)
+    if self._collision_width is None and self._collision_height is None:
+      x,y = self.centerx, self.centery
+    else:
+      x,y = self.x, self.y
+
+    if actor._collision_width is None and actor._collision_height is None:
+      x2,y2 = actor.centerx, actor.centery
+    else:
+      x2,y2 = actor.x, actor.y
+
+    return Collide.obb_obb(x, y, self.collision_width, self.collision_height, self._angle,
+                              x2, y2, actor.collision_width, actor.collision_height, actor._angle)
     
   @property
   def radius(self):
