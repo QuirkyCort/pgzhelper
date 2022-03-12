@@ -1361,7 +1361,7 @@ class Actor(Actor):
   def radius(self):
     if self._radius is None:
       w,h = self._unrotated_size()
-      self._radius = min(w, h)
+      self._radius = min(w, h) * .5
     return self._radius
 
   @radius.setter
