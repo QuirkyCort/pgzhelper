@@ -1041,7 +1041,7 @@ class Actor(Actor):
     else:
       direction = self.direction_to(target)
       if stop_on_target:
-          target_distance = self.distance_to(direction)
+          target_distance = self.distance_to(target)
           if (target_distance < dist) and dist>0:
             dist = target_distance      
     self.x, self.y = move(self.x, self.y, direction, dist)
