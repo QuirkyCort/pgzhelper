@@ -446,7 +446,7 @@ class Collide():
         try:
           px = point[0]
           py = point[1]
-        except KeyError:
+        except (KeyError, TypeError):
           px = point.x
           py = point.y
         dSquare = (px - x)**2 + (py - y)**2
@@ -528,7 +528,7 @@ class Collide():
         try:
           px = point[0]
           py = point[1]
-        except KeyError:
+        except (KeyError, TypeError):
           px = point.x
           py = point.y
         if (
@@ -603,7 +603,7 @@ class Collide():
       try:
         px = point[0]
         py = point[1]
-      except KeyError:
+      except (KeyError, TypeError):
         px = point.x
         py = point.y
 
