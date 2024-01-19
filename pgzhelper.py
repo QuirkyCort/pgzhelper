@@ -1280,7 +1280,7 @@ class Actor(Actor):
       return 0
 
     width, height = self._mask.get_size()
-    if xoffset > width or yoffset > height:
+    if xoffset >= width or yoffset >= height:
       return 0
 
     return self._mask.get_at((xoffset, yoffset))
